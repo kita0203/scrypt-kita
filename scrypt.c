@@ -59,11 +59,14 @@ function serialize(B[0..p-1][0..2r-1]):
 int main(int argc, char *argv[]){
     char salt,password;
     int outlen,r,i,p;
+    
     password=argv[1];
     salt=argv[2];
     outlen=argv[3];
     r=argv[4];
     p=argv[5];
+
+    int B[p][2*r];
   // PBKDF2を使い、入力のパスワードおよびsaltからkビット×p個×2r個の大きさを持つ配列Bを初期化。
   serialize(B[p][2*r]) := PBKDF2(password, salt, iteration=1, output_length_in_bits=k*p*r*2);
   // scryptのコア・ルーチンであるROMixを各B[i]に適用していく。この処理は自明に並列化可能である。
