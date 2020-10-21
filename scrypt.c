@@ -12,7 +12,13 @@
 //   Z: kビット✕2r個の配列。
 // Output:
 //   kビット✕2r個の配列。
-Void BlockMix(Z[0..2r]){
+void salsa(){
+
+}
+void PBKDF2(password,salt,output){
+
+}
+void BlockMix(Z[0..2r]){
   // 作業用のkビットのデータを初期化。
   X := Z[2r-1]
   // Xの値を順次アップデートしながら、その値を2r個の出力Yとする。
