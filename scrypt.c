@@ -12,7 +12,7 @@
 //   Z: kビット✕2r個の配列。
 // Output:
 //   kビット✕2r個の配列。
-function BlockMix(Z[0..2r]):
+Void BlockMix(Z[0..2r]){
   // 作業用のkビットのデータを初期化。
   X := Z[2r-1]
   // Xの値を順次アップデートしながら、その値を2r個の出力Yとする。
@@ -21,16 +21,16 @@ function BlockMix(Z[0..2r]):
     Y[j] := X
   // Yのデータを適切に並び替えて最終結果とする。
   return (Y[0] || Y[2] || ... || Y[2r-2]) || (Y[1] || Y[3] || ... || Y[2r-1])
-
+}
 // scryptのコア・ルーチン。大量のメモリを作業領域として用いながら入力データを撹拌し、入力と全く同じ長さのデータを出力する。
 // Input:
 //   Bi: kビット✕2r個の配列。
 // Output:
 //   kビット✕2r個の配列。
-function ROMix(Bi[0..2r-1]):
+void ROMix(B[i],N){
   // BiにBlockMixをj回適用したものをV[j]とし、N個の配列Vを初期化する。
   for j in (0..N-1):
-    V[j][0..2r-1] := BlockMix^j(Bi[0..2r-1])
+    V[j][0..2r-1] = BlockMix^j(Bi[0..2r-1])
   // BiにBlockMixをN回適用したものをXとして初期化。
   X[0..2r-1] := BlockMix^N(Bi[0..2r-1])
   // N回以下の処理を実行
@@ -40,7 +40,7 @@ function ROMix(Bi[0..2r-1]):
     // XおよびV[k]の排他的論理和をとり、BlockMixする。kのランダム性より、ランダムな場所からVのデータを読みだす必要がある。
     X[0..2r-1] &lt;= BlockMix(X[0..2r-1] xor V[k][0..2r-1])
   return X[0..2r-1]
-
+}
 // 入力された配列Bをシリアライズし、ひとつのバイト列として返却する。
 // Input:
 //   B: kビット✕p個✕2r個の配列。
@@ -58,20 +58,24 @@ function serialize(B[0..p-1][0..2r-1]):
 //   outlenビットのバイト列（ハッシュ値）。
 int main(int argc, char *argv[]){
     char salt,password;
-    int outlen,r,i,p;
-    
+    int outlen,r,i,p,N;
+    int output_length_in_bits;
+
     password=argv[1];
     salt=argv[2];
     outlen=argv[3];
     r=argv[4];
     p=argv[5];
+    N=argv[6];
 
-    int B[p][2*r];
+    int B[p];
   // PBKDF2を使い、入力のパスワードおよびsaltからkビット×p個×2r個の大きさを持つ配列Bを初期化。
-  serialize(B[p][2*r]) := PBKDF2(password, salt, iteration=1, output_length_in_bits=k*p*r*2);
+  for(i = 0; i < argv[5]; i++){
+      (B[i]) = PBKDF2(password, salt, argv[3]);
+  }   
   // scryptのコア・ルーチンであるROMixを各B[i]に適用していく。この処理は自明に並列化可能である。
-  for(i=0;i<r-1;i++){
-       ROMix(B[i]);
+  for(i=0;i<p;i++){
+       ROMix(B[i],N);
   }
  
   // B を salt とし、PBKDF2 を用いて最終結果を計算する。
