@@ -18,7 +18,7 @@ void salsa(){
 void PBKDF2(password,salt,output){
 
 }
-void BlockMix(Z[0..2r]){
+int BlockMix(Z[0..2r]){
   // 作業用のkビットのデータを初期化。
   X := Z[2r-1]
   // Xの値を順次アップデートしながら、その値を2r個の出力Yとする。
@@ -33,13 +33,14 @@ void BlockMix(Z[0..2r]){
 //   Bi: kビット✕2r個の配列。
 // Output:
 //   kビット✕2r個の配列。
-void ROMix(B[i],N){
+int ROMix(B[i],N){
   // BiにBlockMixをj回適用したものをV[j]とし、N個の配列Vを初期化する。
-  for j in (0..N-1):
+  for(j=0; j < N; j++){
     V[j][0..2r-1] = BlockMix^j(Bi[0..2r-1])
   // BiにBlockMixをN回適用したものをXとして初期化。
-  X[0..2r-1] := BlockMix^N(Bi[0..2r-1])
+    X[0..2r-1] := BlockMix^N(Bi[0..2r-1])
   // N回以下の処理を実行
+  }
   for N times:
     // X[2r-1]をリトルエンディアン(LE)の整数と解釈し、Nで割った余りをkとする。kは擬似乱数として振る舞う。
     k &lt;= AS_LE(X[2r-1]) mod N
@@ -74,13 +75,13 @@ int main(int argc, char *argv[]){
     p=argv[5];
     N=argv[6];
 
-    int B[p];
+    int B[p][2*r];
   // PBKDF2を使い、入力のパスワードおよびsaltからkビット×p個×2r個の大きさを持つ配列Bを初期化。
-  for(i = 0; i < argv[5]; i++){
-      (B[i]) = PBKDF2(password, salt, argv[3]);
+  for(i = 0; i < p; i++){
+      (B[i][2*r]) = PBKDF2(password, salt, argv[3]);
   }   
   // scryptのコア・ルーチンであるROMixを各B[i]に適用していく。この処理は自明に並列化可能である。
-  for(i=0;i<p;i++){
+  for(i=0;i<2*r;i++){
        ROMix(B[i],N);
   }
  
